@@ -126,6 +126,7 @@ def load_data(filename=None,base_url=None):
   """
   print ("Loading file {}...".format(filename))
   try:
+    # TODO: FIX URL IN LOAD
     data = load(base_url+"samples/{}".format(filename))
   except FileNotFoundError as fnf:
     #print ("File {} not found.".format(filename))
