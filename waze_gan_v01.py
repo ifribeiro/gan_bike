@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 """waze_gan_v01
 
@@ -14,7 +15,7 @@ Original file is located at
 
 # utils
 from datetime import datetime
-
+import sys
 # numpy
 import numpy as np
 # tensorflow
@@ -23,8 +24,6 @@ from keras.models import Sequential
 # keras
 from keras.optimizers import Adam
 from numpy import load, ones, zeros
-from tensorflow.python.keras.backend import learning_phase
-
 
 import discriminators as discs
 import generators as gens
@@ -115,7 +114,7 @@ def get_real_samples(n_samples,dataset):
   return X,y
 
 """### loading the data"""
-
+# TODO: MOVE FUCTION TO PROPER FILE
 def load_data(filename=None,base_url=None):
   """
   Loads a saved file
@@ -127,7 +126,7 @@ def load_data(filename=None,base_url=None):
   print ("Loading file {}...".format(filename))
   try:
     # TODO: FIX URL IN LOAD
-    data = load(base_url+"samples/{}".format(filename))
+    data = load(filename)
   except FileNotFoundError as fnf:
     #print ("File {} not found.".format(filename))
     print ("File not found error: {0}".format(fnf))
@@ -157,9 +156,6 @@ def preprocessing(data=None,n_streets=2,interval=30, h_stack=False):
     data = np.array(data)
   print ("Done.")
   return data
-
-filename = "NS_AvMalCamposReduced.npy"
-data = load_data(filename=filename, base_url=base_url_local)
 
 #data = preprocessing(data=data,n_streets=2,interval=30, h_stack=True)
 
@@ -239,51 +235,71 @@ Melhor modelo até agora (28/10):
 
 A difereça entre o loss do discriminator e do generator são grandes, mas o generator estava convergindo
 """
+def test_parameters(gen_models=None,batches_sizes=[256,303],epochs=1,learning_rates=[],nrepetitions=1, path_to_save=""):
+  #gen_models = {'v2':g_v2, 'v4':g_v4, 'v5':g_v5, 'v6':g_v6, 'v7':g_v7, 'v8':g_v8, 'v9':g_v9, 'v11':g_v11}
+  # bs = 606
+  for genmod in gen_models:
+    hist_training = {}
+    for bs in batches_sizes:
+      for lr in learning_rates:
+        for nrep in nrepetitions:
+          print ("bs:{} g:{} lr:{} nrep:{}".format(bs,genmod,lr,nrep))
+          array_training = []
+          for i in range(1):
+            #d_model = discriminator_model_v2(n_hiddens=20, n_steps=59,n_features=98,lr=0.0001,b1=0.5)
+            d_model = discs.discriminator_model_v3(n_hiddens=10, n_steps=59,n_features=98,lr=lr,b1=0.5)
+            g = gen_models[genmod]
+            gan_model = define_gan(g,d_model,lr=0.0001,b1=0.5)
+            line  = "{}_{}_exec:{}".format(genmod,i,bs)
+            losses = train(g,d_model,gan_model,data,n_epochs=epochs,n_batch=bs,n_steps=98,n_features=59,image_title=line,n_teste=0,n_rep=nrep)
+            d_model.reset_states()        
+            g.reset_states()
+            gan_model.reset_states()
+            
+            array_training.append(losses)
+          klr = 1
+          if (lr==0000.2):
+            klr = 2
+          key = "{}_bs{}_lr{}_nr{}".format(genmod,bs,klr,nrep)
+          hist_training.setdefault(key,[])
+          hist_training[key].append(array_training)
+    filename = "t_{}_{}eps_db_menor.json".format(genmod,epochs)
+    save_training(path_to_save,hist_training,filename)
 
-# g_v2 = gens.generator_model_v2(n_streets=2,n_weeks=7,interval=30,n_features=98)
-# g_v3 = gens.generator_model_v3(n_features=98)
-g_v4 = gens.generator_model_v4(n_streets=2,n_weeks=7,interval=30,n_features=98)
-# g_v5 = gens.generator_model_v5(n_features=98)
-# g_v6 = gens.generator_model_v6(n_features=98)
-g_v7 = gens.generator_model_v7(n_features=98)
-g_v8 = gens.generator_model_v8(n_features=98)
-# g_v9 = gens.generator_model_v9(n_features=98)
-g_v10 = gens.generator_model_v10(n_features=98)
-# g_v11 = gens.generator_model_v11(n_features=98)
+if __name__ == "__main__":
+  path_to_ds = sys.argv[1]
+  path_to_save = sys.argv[2]
+  if (path_to_ds==None):
+    print ("A database is needed for the training.")
+    quit()
+  if (path_to_save==None):
+    path_to_save="./trainings/"
+  data = load_data(filename=path_to_ds)
 
-#gen_models = {'v2':g_v2, 'v4':g_v4, 'v5':g_v5, 'v6':g_v6, 'v7':g_v7, 'v8':g_v8, 'v9':g_v9, 'v11':g_v11}
-gen_models = {'v4':g_v4, 'v8':g_v8, 'v7':g_v7,'v10':g_v10}
-#batches_sizes = [128,256,303]
-batches_sizes = [256,303]
-epochs = 5
-learning_rates=[0.0001,0.0002]
-nrepetitions = [1,2]
+  
 
-# bs = 606
-for genmod in gen_models:
-  hist_training = {}
-  for bs in batches_sizes:
-    for lr in learning_rates:
-      for nrep in nrepetitions:
-        print ("bs:{} g:{} lr:{} nrep:{}".format(bs,genmod,lr,nrep))
-        array_training = []
-        for i in range(1):
-          #d_model = discriminator_model_v2(n_hiddens=20, n_steps=59,n_features=98,lr=0.0001,b1=0.5)
-          d_model = discs.discriminator_model_v3(n_hiddens=10, n_steps=59,n_features=98,lr=lr,b1=0.5)
-          g = gen_models[genmod]
-          gan_model = define_gan(g,d_model,lr=0.0001,b1=0.5)
-          line  = "{}_{}_exec:{}".format(genmod,i,bs)
-          losses = train(g,d_model,gan_model,data,n_epochs=epochs,n_batch=bs,n_steps=98,n_features=59,image_title=line,n_teste=0,n_rep=nrep)
-          d_model.reset_states()        
-          g.reset_states()
-          gan_model.reset_states()
-          
-          array_training.append(losses)
-        klr = 1
-        if (lr==0000.2):
-          klr = 2
-        key = "{}_bs{}_lr{}_nr{}".format(genmod,bs,klr,nrep)
-        hist_training.setdefault(key,[])
-        hist_training[key].append(array_training)
-  filename = "t_{}_{}eps_db_menor.json".format(genmod,epochs)
-  save_training("./trainings/",hist_training,filename)
+  # g_v2 = gens.generator_model_v2(n_streets=2,n_weeks=7,interval=30,n_features=98)
+  # g_v3 = gens.generator_model_v3(n_features=98)
+  g_v4 = gens.generator_model_v4(n_features=98)
+  # g_v5 = gens.generator_model_v5(n_features=98)
+  # g_v6 = gens.generator_model_v6(n_features=98)
+  # g_v7 = gens.generator_model_v7(n_features=98)
+  # g_v8 = gens.generator_model_v8(n_features=98)
+  # g_v9 = gens.generator_model_v9(n_features=98)
+  # g_v10 = gens.generator_model_v10(n_features=98)
+  # g_v11 = gens.generator_model_v11(n_features=98)
+
+  gen_models = {'v4':g_v4}
+  batches_sizes = [128]
+  epochs = 1
+  learning_rates=[0.0001]
+  nrepetitions = [1]
+
+  print("dataset in: {}".format(path_to_ds))
+  print("save in: {}".format(path_to_save))
+
+  test_parameters(gen_models,batches_sizes,epochs,learning_rates,nrepetitions,path_to_save)
+
+
+
+  

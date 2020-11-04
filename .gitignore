@@ -1,4 +1,5 @@
 /trainings/*
+/__pycache__/*
 evaluations
 parametros
 testefunctions.py
