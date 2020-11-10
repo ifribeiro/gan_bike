@@ -236,6 +236,17 @@ Melhor modelo até agora (28/10):
 A difereça entre o loss do discriminator e do generator são grandes, mas o generator estava convergindo
 """
 def test_parameters(gen_models=None,batches_sizes=[256,303],epochs=1,learning_rates=[],nrepetitions=1, path_to_save=""):
+  """
+  Evaluates the generators models over a list of parameters
+  ----
+  Params:
+  gen_models: list of generator models
+  batch_sizes: list of batches sizes
+  epochs: number of epochs
+  lerning_rates: list of learning rates
+  nrepetitions: number of times the generator will be trained
+  path_to_save: path where the training results will be saved
+  """
   #gen_models = {'v2':g_v2, 'v4':g_v4, 'v5':g_v5, 'v6':g_v6, 'v7':g_v7, 'v8':g_v8, 'v9':g_v9, 'v11':g_v11}
   # bs = 606
   for genmod in gen_models:
@@ -265,40 +276,41 @@ def test_parameters(gen_models=None,batches_sizes=[256,303],epochs=1,learning_ra
           hist_training[key].append(array_training)
     filename = "t_{}_{}eps_db_menor.json".format(genmod,epochs)
     save_training(path_to_save,hist_training,filename)
-
-if __name__ == "__main__":
-  path_to_ds = sys.argv[1]
-  path_to_save = sys.argv[2]
-  if (path_to_ds==None):
-    print ("A database is needed for the training.")
-    quit()
-  if (path_to_save==None):
-    path_to_save="./trainings/"
-  data = load_data(filename=path_to_ds)
+  
+# TODO: REMOVE
+# if __name__ == "__main__":
+#   path_to_ds = sys.argv[1]
+#   path_to_save = sys.argv[2]
+#   if (path_to_ds==None):
+#     print ("A database is needed for the training.")
+#     quit()
+#   if (path_to_save==None):
+#     path_to_save="./trainings/"
+#   data = load_data(filename=path_to_ds)
 
   
 
-  # g_v2 = gens.generator_model_v2(n_streets=2,n_weeks=7,interval=30,n_features=98)
-  # g_v3 = gens.generator_model_v3(n_features=98)
-  g_v4 = gens.generator_model_v4(n_features=98)
-  # g_v5 = gens.generator_model_v5(n_features=98)
-  # g_v6 = gens.generator_model_v6(n_features=98)
-  # g_v7 = gens.generator_model_v7(n_features=98)
-  # g_v8 = gens.generator_model_v8(n_features=98)
-  # g_v9 = gens.generator_model_v9(n_features=98)
-  # g_v10 = gens.generator_model_v10(n_features=98)
-  # g_v11 = gens.generator_model_v11(n_features=98)
+#   # g_v2 = gens.generator_model_v2(n_streets=2,n_weeks=7,interval=30,n_features=98)
+#   # g_v3 = gens.generator_model_v3(n_features=98)
+#   g_v4 = gens.generator_model_v4(n_features=98)
+#   # g_v5 = gens.generator_model_v5(n_features=98)
+#   # g_v6 = gens.generator_model_v6(n_features=98)
+#   # g_v7 = gens.generator_model_v7(n_features=98)
+#   # g_v8 = gens.generator_model_v8(n_features=98)
+#   # g_v9 = gens.generator_model_v9(n_features=98)
+#   # g_v10 = gens.generator_model_v10(n_features=98)
+#   # g_v11 = gens.generator_model_v11(n_features=98)
 
-  gen_models = {'v4':g_v4}
-  batches_sizes = [128]
-  epochs = 1
-  learning_rates=[0.0001]
-  nrepetitions = [1]
+#   gen_models = {'v4':g_v4}
+#   batches_sizes = [128]
+#   epochs = 1
+#   learning_rates=[0.0001]
+#   nrepetitions = [1]
 
-  print("dataset in: {}".format(path_to_ds))
-  print("save in: {}".format(path_to_save))
+#   print("dataset in: {}".format(path_to_ds))
+#   print("save in: {}".format(path_to_save))
 
-  test_parameters(gen_models,batches_sizes,epochs,learning_rates,nrepetitions,path_to_save)
+#   test_parameters(gen_models,batches_sizes,epochs,learning_rates,nrepetitions,path_to_save)
 
 
 
