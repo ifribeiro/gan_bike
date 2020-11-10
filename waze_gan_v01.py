@@ -235,7 +235,7 @@ Melhor modelo até agora (28/10):
 
 A difereça entre o loss do discriminator e do generator são grandes, mas o generator estava convergindo
 """
-def test_parameters(gen_models=None,batches_sizes=[256,303],epochs=1,learning_rates=[],nrepetitions=1, path_to_save=""):
+def test_parameters(data, gen_models=None,batches_sizes=[256,303],epochs=1,learning_rates=[],nrepetitions=1, path_to_save=""):
   """
   Evaluates the generators models over a list of parameters
   ----
