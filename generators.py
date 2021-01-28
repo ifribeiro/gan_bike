@@ -543,3 +543,21 @@ def generator_model_v17(latent_dim):
   model.add(LeakyReLU(alpha=0.2))
   model.add(Conv2D(1, (4,4), activation='sigmoid', padding='same'))
   return model
+
+def generator_model_v18(latent_dim):
+  model = Sequential()
+  n_nodes = 64 * 4 * 4
+  model.add(Dense(n_nodes, input_dim=latent_dim))
+  model.add(LeakyReLU(alpha=0.2))
+  model.add(Reshape((4,4,64)))
+  # upsample to 8x4
+  model.add(Conv2DTranspose(64, (4,4), strides=(2,1), padding='same'))
+  model.add(LeakyReLU(alpha=0.2))
+  # upsample to 16x4
+  model.add(Conv2DTranspose(64, (4,4), strides=(2,1), padding='same'))
+  model.add(LeakyReLU(alpha=0.2))
+  # model.add(Conv2D(1, (7,7), activation='sigmoid', padding='same'))
+  model.add(Conv2DTranspose(64, (4,4), strides=(3,1), padding='same'))
+  model.add(LeakyReLU(alpha=0.2))
+  model.add(Conv2D(1, (4,4), activation='sigmoid', padding='same'))
+  return model

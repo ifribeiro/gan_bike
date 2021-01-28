@@ -148,8 +148,11 @@ def get_real_samples3(n_samples, dataset, wkday=0):
   return real_samples, y
 
 
-def plot_img(d):
-  fig = plt.figure()
+def plot_img(d,base_url=None,testname="",ep=0):
+  today = datetime.now()
+  path = base_url+"/{}_{}_{}/{}/{}.png".format(today.day, today.month, today.year,testname,ep)
+  fig = plt.figure()  
   plt.imshow(d,aspect="auto")
-  plt.show()
+  plt.show()  
+  plt.savefig(path)
   plt.close(fig)
