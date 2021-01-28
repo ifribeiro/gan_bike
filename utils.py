@@ -146,3 +146,10 @@ def get_real_samples3(n_samples, dataset, wkday=0):
   real_samples = real_samples.reshape(n_samples,48,4,1)
   y = np.ones((n_samples,1))
   return real_samples, y
+
+
+def plot_img(d):
+  fig = plt.figure()
+  plt.imshow(d,aspect="auto")
+  plt.show()
+  plt.close(fig)

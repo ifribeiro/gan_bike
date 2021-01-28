@@ -29,7 +29,8 @@ from numpy import load, ones, zeros
 import discriminators as discs
 import generators as gens
 from utils import (convert_data, generate_fake_samples, generate_fake_samples3, generate_latent_points,
-                  generate_latent_points3,get_slot_range, plot_training,save_training,get_real_samples, get_real_samples3)
+                  generate_latent_points3,get_slot_range, plot_training,save_training,get_real_samples, get_real_samples3,
+                  plot_img)
 
 np.random.seed(0)
 
