@@ -29,7 +29,8 @@ from numpy import load, ones, zeros
 import discriminators as discs
 import generators as gens
 from utils import (convert_data, generate_fake_samples, generate_fake_samples3, generate_latent_points,
-                  generate_latent_points3,get_slot_range, plot_training,save_training,get_real_samples, get_real_samples3)
+                  generate_latent_points3,get_slot_range, plot_training,save_training,get_real_samples, get_real_samples3,
+                  plot_img)
 import matplotlib.pyplot as plt
 
 np.random.seed(0)
@@ -226,14 +227,8 @@ def train(g_model,d_model, gan_model, dataset, n_epochs=20,n_batch=256,
       print(convert_data(X_fake[:1], encoderStreets=encStreets,encoderWeekDay=encWeek,encoderSlots=encSlots))
   return losses
 
-def plot_img(d):
-  fig = plt.figure()
-  plt.imshow(d,aspect="auto")
-  plt.show()
-  plt.close(fig)
-
 def train2(g_model,d_model,gan_model,dataset, n_epochs=20,n_batch=256, 
-          image_title="",print_sample=False, latent_dim=100):
+          image_title="",print_sample=False, latent_dim=100,base_url=None,testname=None):
   bat_per_epoch = int(dataset.shape[0]/n_batch)
   half_batch = int(n_batch/2)
   
@@ -260,7 +255,7 @@ def train2(g_model,d_model,gan_model,dataset, n_epochs=20,n_batch=256,
     if print_sample:
       X_fake,_ = generate_fake_samples3(g_model,2,latent_dim)
       X_fake = X_fake.reshape(2,48,4)
-      plot_img(X_fake[0])   
+      plot_img(X_fake[0],base_url=base_url,testname=testname,ep=i)   
       
   return losses
 

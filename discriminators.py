@@ -112,11 +112,69 @@ def discriminator_model_v6(dunits=[10,10,10,10],lunits=[10,10,10,10], n_streets=
 
 
 def define_discriminator_v0(in_shape=(48,4,1)):
+  """
+  Base discriminator using CNN
+  """
   model = Sequential()
   model.add(Conv2D(32,(3,3), strides=(2,2),padding="same", input_shape=in_shape))
   model.add(LeakyReLU(alpha=0.2))
   model.add(Dropout(0.4))
   model.add(Conv2D(32,(3,3), strides=(2,2),padding="same"))
+  model.add(LeakyReLU(alpha=0.2))
+  model.add(Dropout(0.4))
+  model.add(Flatten())
+  model.add(Dense(1, activation="sigmoid"))
+  opt = Adam(lr=0.0001, beta_1=0.5)
+  model.compile(loss="binary_crossentropy",optimizer=opt,metrics=['accuracy'])
+  return model
+
+def define_discriminator_v1(in_shape=(48,4,1)):
+  """
+    Base discriminator using CNN
+    - Filter (2,2)
+  """
+  model = Sequential()
+  model.add(Conv2D(32,(2,2), strides=(2,2),padding="same", input_shape=in_shape))
+  model.add(LeakyReLU(alpha=0.2))
+  model.add(Dropout(0.4))
+  model.add(Conv2D(32,(2,2), strides=(2,2),padding="same"))
+  model.add(LeakyReLU(alpha=0.2))
+  model.add(Dropout(0.4))
+  model.add(Flatten())
+  model.add(Dense(1, activation="sigmoid"))
+  opt = Adam(lr=0.0001, beta_1=0.5)
+  model.compile(loss="binary_crossentropy",optimizer=opt,metrics=['accuracy'])
+  return model
+
+def define_discriminator_v1(in_shape=(48,4,1)):
+  """
+    Base discriminator using CNN
+    - strides (2,1)
+  """
+  model = Sequential()
+  model.add(Conv2D(32,(2,2), strides=(2,1),padding="same", input_shape=in_shape))
+  model.add(LeakyReLU(alpha=0.2))
+  model.add(Dropout(0.4))
+  model.add(Conv2D(32,(2,2), strides=(2,1),padding="same"))
+  model.add(LeakyReLU(alpha=0.2))
+  model.add(Dropout(0.4))
+  model.add(Flatten())
+  model.add(Dense(1, activation="sigmoid"))
+  opt = Adam(lr=0.0001, beta_1=0.5)
+  model.compile(loss="binary_crossentropy",optimizer=opt,metrics=['accuracy'])
+  return model
+
+def define_discriminator_v2(in_shape=(48,4,1)):
+  """
+    Base discriminator using CNN
+    - filter  (2,2)
+    - strides (2,1)
+  """
+  model = Sequential()
+  model.add(Conv2D(32,(2,2), strides=(2,1),padding="same", input_shape=in_shape))
+  model.add(LeakyReLU(alpha=0.2))
+  model.add(Dropout(0.4))
+  model.add(Conv2D(32,(2,2), strides=(2,1),padding="same"))
   model.add(LeakyReLU(alpha=0.2))
   model.add(Dropout(0.4))
   model.add(Flatten())
