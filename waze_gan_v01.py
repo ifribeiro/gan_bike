@@ -29,8 +29,8 @@ from numpy import load, ones, zeros
 import discriminators as discs
 import generators as gens
 from utils import (convert_data, generate_fake_samples, generate_fake_samples3, generate_latent_points,
-                  generate_latent_points3,get_slot_range, plot_training,save_training,get_real_samples, get_real_samples3,
-                  plot_img)
+                  generate_latent_points3,get_slot_range, plot_training,save_training,get_real_samples, get_real_samples3)
+import matplotlib.pyplot as plt
 
 np.random.seed(0)
 
@@ -225,6 +225,12 @@ def train(g_model,d_model, gan_model, dataset, n_epochs=20,n_batch=256,
       X_fake,_ = generate_fake_samples(g_model=g_model,n_samples=2, n_steps=n_steps, n_features=n_features)
       print(convert_data(X_fake[:1], encoderStreets=encStreets,encoderWeekDay=encWeek,encoderSlots=encSlots))
   return losses
+
+def plot_img(d):
+  fig = plt.figure()
+  plt.imshow(d,aspect="auto")
+  plt.show()
+  plt.close(fig)
 
 def train2(g_model,d_model,gan_model,dataset, n_epochs=20,n_batch=256, 
           image_title="",print_sample=False, latent_dim=100):
