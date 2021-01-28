@@ -1,19 +1,21 @@
 from pathlib import Path
 
 import json
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from keras.layers import Layer
 from tensorflow_probability import distributions
 from sklearn.preprocessing import OneHotEncoder
 from datetime import datetime
+
 """## Gumbel-softmax Layer"""
 
 class GumbelSoftmax(Layer):
   """
   Gumbel-softmax layer
   """
+  # TODO: Remove units
   def __init__(self,units=32,**kwargs):
     super(GumbelSoftmax, self).__init__(**kwargs)
     self.temperature = 1e-5 # makes the distribution discrete
@@ -42,8 +44,7 @@ def get_slot_range(interval=30):
   return slots_range
 
 """## Default GAN"""
-def plot_training(epoch,range_training=[], loss_d=[],
-                  loss_g=[],labels=['G','D'],path=None,today=None, image_title="",n_teste=None):
+def plot_training(epoch, loss_d=[], loss_g=[],labels=['G','D'], path=None,today=None, image_title="",n_teste=None):
   """
   Plot training 
   """
@@ -59,8 +60,8 @@ def plot_training(epoch,range_training=[], loss_d=[],
                                                 today.year,n_teste)
     Path(path_to_save).mkdir(parents=True,exist_ok=True)
     plt.savefig(path_to_save+"/{}".format(epoch))
-  plt.show()
-  plt.close(fig)
+  # plt.show()
+  # plt.close(fig)
 
 def save_training(base_url,data,filename):
   now = datetime.now()
@@ -71,25 +72,7 @@ def save_training(base_url,data,filename):
     json.dump(data,fp)
 
 
-def convert_data(dataset):
-  ruas = ['Av. Mal. Campos', 'Av. Nossa Senhora da Penha']
-  wk = [0,1,2,3,4,5,6]
-  slots = [x for x in range(49)]
-
-  ruas = np.array(ruas).reshape(-1,1)
-  wk = np.array(wk).reshape(-1,1)
-  slots = np.array(slots).reshape(-1,1)
-
-  encoderStreets = OneHotEncoder(sparse=False)
-  encoderStreets = encoderStreets.fit(ruas)
-
-  encoderWeekDay = OneHotEncoder(sparse=False)
-  encoderWeekDay = encoderWeekDay.fit(wk)
-
-  encoderSlots   = OneHotEncoder(sparse=False)
-  encoderSlots   = encoderSlots.fit(slots)
-
-
+def convert_data(dataset,encoderStreets,encoderWeekDay,encoderSlots):
   convertido = []
   for arr in dataset:
     data0 = np.concatenate((arr.reshape(arr.shape[0],arr.shape[1],1)),axis=1)
@@ -119,3 +102,47 @@ def generate_fake_samples(g_model=None, n_samples=None, n_steps=None, n_features
   # create 'fake' class labels (0)
   y = np.zeros((n_samples,1))
   return X, y
+
+def generate_latent_points3(n_samples, latent_dim):
+  # generate points in the latent space
+  x_input = np.random.randn(n_samples*latent_dim)
+  x_input = x_input.reshape(n_samples,latent_dim)
+  return x_input
+
+def generate_fake_samples3(g_model, n_samples, latent_dim):
+  x_input = generate_latent_points3(n_samples, latent_dim)
+  X = g_model.predict(x_input)
+  y = np.zeros((n_samples,1))
+  return X, y
+
+def get_real_samples(n_samples,dataset):
+  """
+  Returns n_samples real samples for the dataset
+  ----
+  params: 
+  - n_samples
+  - dataset
+  """
+
+  start = np.random.randint(0,len(dataset)-n_samples,size=1)[0]
+  X = dataset[start:start+n_samples]
+  y = np.ones((n_samples,1))
+  return X,y
+
+def get_real_samples3(n_samples, dataset, wkday=0):
+  real_samples = []
+  full = False
+  while not full:
+    r,_ = get_real_samples(n_samples*10,dataset)
+    for i, arr in enumerate(r):
+      # compares the weekday
+      equals = arr[:,1][0] == wkday
+      if equals:
+        real_samples.append(arr)
+        if (len(real_samples) == n_samples): 
+          full = True
+          break
+  real_samples = np.array(real_samples)
+  real_samples = real_samples.reshape(n_samples,48,4,1)
+  y = np.ones((n_samples,1))
+  return real_samples, y

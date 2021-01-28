@@ -2,16 +2,16 @@
 from os import name
 
 from keras.layers import (LSTM, BatchNormalization, Conv1D, Dense, Dropout,
-                          Input, Lambda, LeakyReLU, Permute)
+                          Input, Lambda, LeakyReLU, Permute, Conv2D, Conv2DTranspose,Reshape,)
 from keras.layers.merge import concatenate
-from keras.models import Model
+from keras.models import Model, Sequential
 
 from utils import GumbelSoftmax, get_slot_range
 import numpy as np
 
 np.random.seed(0)
 
-def generator_model_v2(n_streets=2, n_weeks=7, interval=30, n_features=None):
+def generator_model_v2(dmunits=[1,1,1],n_streets=2, n_weeks=7, interval=30, n_features=None):
   """
   Defines the generator model
   ------
@@ -27,31 +27,40 @@ def generator_model_v2(n_streets=2, n_weeks=7, interval=30, n_features=None):
   n_steps = n_streets+n_weeks+n_slots+1
   
   # inverted because is a multi-input multi-step
-  visible = Input(shape=(n_features,n_steps))
-
-  lstm = LSTM(n_steps, return_sequences=True, name='lstm')(visible)
+  visible = Input(shape=(n_features, n_steps))
 
   # first discrete variable
-  lbd1   = Lambda(lambda x: x[:,:,:n_streets])(lstm)
-  out_1  = GumbelSoftmax(units=n_streets,name='out_1') (lbd1)
+  lbd1   = Lambda(lambda x: x[:,:,:n_streets])(visible)
+  # OBS: return_sequences = True to maintaining the tensor's shape
+  dense2 = Dense(n_streets*dmunits[0],activation='relu', name='dense2')(lbd1)
+  lstm1 = LSTM(n_streets, return_sequences=True,name='lstm1')(dense2)
+  leaky1 = LeakyReLU(alpha=0.2)(lstm1)
+  out_1  = GumbelSoftmax(units=n_streets,name='out_1') (leaky1)
 
   # second discrete variable (weekday)
-  lbd2   = Lambda(lambda x: x[:,:, n_streets:n_streets+n_weeks])(lstm)
-  out_2  = GumbelSoftmax(units=n_weeks,name='out_2') (lbd2)
+  lbd2   = Lambda(lambda x: x[:,:, n_streets:n_streets+n_weeks])(visible)
+  dense3 = Dense(n_weeks*dmunits[1],activation='relu', name='dense3')(lbd2)
+  lstm2 = LSTM(n_weeks, return_sequences=True,name='lstm2')(dense3)
+  leaky2 = LeakyReLU(alpha=0.2)(lstm2)
+  out_2  = GumbelSoftmax(units=n_weeks,name='out_2') (leaky2)
 
   # third discret variable (slot)
-  lbd3   = Lambda(lambda x: x[:,:,n_streets+n_weeks:n_streets+n_weeks+n_slots])(lstm)
-  out_3  = GumbelSoftmax(units=n_slots,name='out_3') (lbd3)
+  lbd3   = Lambda(lambda x: x[:,:,n_streets+n_weeks:n_streets+n_weeks+n_slots])(visible)
+  dense4 = Dense(n_slots*dmunits[2],activation='relu', name='dense4')(lbd3)
+  lstm3 = LSTM(n_slots, return_sequences=True,name='lstm3')(dense4)
+  leaky3 = LeakyReLU(alpha=0.2)(lstm3)
+  out_3  = GumbelSoftmax(units=n_slots,name='out_3')(leaky3)
 
   # continuos variable
-  lbd4   = Lambda(lambda x: x[:,:,-1:])(lstm)
-  out_4  = Dense(units=1,activation='relu',name='out_4') (lbd4)
-
-  merge = concatenate([out_1, out_2, out_3, out_4])
-
-  permute = Permute((2,1), name="permute1")(merge)
+  lbd4   = Lambda(lambda x: x[:,:,-1:])(visible)
+  # leaky1 = LeakyReLU(alpha=0.2)(lstm4)
+  out_4  = Dense(units=3, name='out_4') (lbd4)
+  lstm4 = LSTM(units=1, return_sequences=True,name='lstm4')(out_4)
+  leaky4 = LeakyReLU(alpha=0.2)(lstm4)
+  merge = concatenate([out_1, out_2, out_3, leaky4])
+  permute = Permute((2,1),name='permute') (merge)  
   
-  # size of all discrete variable + the continuos variable
+  # size of all discrete variables + the continuos variable
   #output  = Dense(n_features)(merge)
   model = Model(inputs=visible, outputs=permute)
 
@@ -515,4 +524,22 @@ def generator_model_v11(n_streets=2, n_weeks=7, interval=30, n_features=None):
   #output  = Dense(n_features)(merge)
   model = Model(inputs=visible, outputs=permute)
 
+  return model
+
+def generator_model_v17(latent_dim):
+  model = Sequential()
+  n_nodes = 128 * 4 * 4
+  model.add(Dense(n_nodes, input_dim=latent_dim))
+  model.add(LeakyReLU(alpha=0.2))
+  model.add(Reshape((4,4,128)))
+  # upsample to 8x4
+  model.add(Conv2DTranspose(128, (4,4), strides=(2,1), padding='same'))
+  model.add(LeakyReLU(alpha=0.2))
+  # upsample to 16x4
+  model.add(Conv2DTranspose(128, (4,4), strides=(2,1), padding='same'))
+  model.add(LeakyReLU(alpha=0.2))
+  # model.add(Conv2D(1, (7,7), activation='sigmoid', padding='same'))
+  model.add(Conv2DTranspose(128, (4,4), strides=(3,1), padding='same'))
+  model.add(LeakyReLU(alpha=0.2))
+  model.add(Conv2D(1, (4,4), activation='sigmoid', padding='same'))
   return model
