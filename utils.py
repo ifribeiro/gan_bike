@@ -151,10 +151,9 @@ def get_real_samples3(n_samples, dataset, wkday=0):
 def plot_img(d,base_url=None,testname="",ep=0):
   today = datetime.now()
   path = base_url+"/{}_{}_{}/{}".format(today.day, today.month, today.year,testname)
-  
   Path(path).mkdir(parents=True,exist_ok=True)
-  fig = plt.figure()  
+  fig = plt.figure()
   plt.imshow(d,aspect="auto")
-  plt.show()  
   plt.savefig(path+"/{}.png".format(ep))
+  plt.show()
   plt.close(fig)
