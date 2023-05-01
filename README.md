@@ -1,1 +1,1 @@
-# gan_mobility
+# Experiments with TimeGAN using the Bikesharing dataset
