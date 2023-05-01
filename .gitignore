@@ -1,8 +1,4 @@
-/trainings/*
 .vscode/
 /__pycache__/*
-evaluations
-parametros
-testefunctions.py
-/pteste/*
-/test_parameters2/*
+*Zone.Identifier
+*.pyc
