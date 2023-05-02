@@ -3,8 +3,8 @@
 # Setup
 
 - Install miniconda
-- pip install -f requirements.txt
+- Install dependencies: pip install -r requirements.txt
 
-For use in notebooks:
+For use with notebooks:
 
 - conda install -n pygan_37 ipykernel --update-deps --force-reinstall
